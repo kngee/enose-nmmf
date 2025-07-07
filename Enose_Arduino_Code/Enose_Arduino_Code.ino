@@ -92,13 +92,13 @@ void loop() {
   DirtySetup();
   Serial.println("Initialise Dirty Read"); 
 
-  ReadVals(3500, 1);
+  ReadVals(1500, 1);
 
-  CleanSetup();
-  Serial.println("Initialise Clean Read");
-  Serial.println("Complete");
+  // CleanSetup();
+  // Serial.println("Initialise Clean Read");
+  // Serial.println("Complete");
 
-  delay(30000);
+  // delay(30000);
   // ReadVals(150, 0);
 
   measurementnum++;
