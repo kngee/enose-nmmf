@@ -12,7 +12,7 @@ ser = serial.Serial(
 )
 
 # File name for the CSV
-csv_file = "isopropanyl_08_07_25.csv"
+csv_file = "gas_08_07_25.csv"
 
 try:
     # Open the CSV file in write mode

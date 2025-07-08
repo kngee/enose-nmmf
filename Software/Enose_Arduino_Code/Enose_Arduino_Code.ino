@@ -14,7 +14,6 @@ void ReadVals(int duration, boolean state) {
   {  
     int sensorValue = analogRead(A0);   // MQ135 
     int sensorValue1 = analogRead(A1);  // MQ3
-    int sensorValue2 = analogRead(A2);  // MQ2
     int sensorValue3 = analogRead(A3);  // MQ6
     int sensorValue4 = analogRead(A4);  // MQ9
     int sensorValue5 = analogRead(A5);  // MQ5
@@ -22,8 +21,8 @@ void ReadVals(int duration, boolean state) {
     int sensorValue7 = analogRead(A7);  // MQ4
 
     String stateInfo = "State: " + String(state) + "  Measurement No. : " + String(measurementnum) + "  Sample No. : " + String(quicksamplenum);
-    String sensorResults = "S1 (MQ135): " +   String(sensorValue) + " S2 (MQ3): " + String(sensorValue1) + " S3 (MQ2): " +  String(sensorValue2) + " S4 (MQ6): " +  String(sensorValue3) + " S5 (MQ9): " +  String(sensorValue4) + " S6 (MQ5): " +  String(sensorValue5) + " S7 (MQ8): " +  String(sensorValue6) + " S8 (MQ4): " +  String(sensorValue7);
-    String data = "<WRITE>" + String(sensorValue) + "," + String(sensorValue1) + "," + String(sensorValue2) + "," + String(sensorValue3) + "," + String(sensorValue4) + "," + String(sensorValue5) + "," + String(sensorValue6) + "," + String(sensorValue7) + "</WRITE>";
+    String sensorResults = "S1 (MQ135): " +   String(sensorValue) + " S2 (MQ3): " + String(sensorValue1) + " S4 (MQ6): " +  String(sensorValue3) + " S5 (MQ9): " +  String(sensorValue4) + " S6 (MQ5): " +  String(sensorValue5) + " S7 (MQ8): " +  String(sensorValue6) + " S8 (MQ4): " +  String(sensorValue7);
+    String data = "<WRITE>" + String(sensorValue) + "," + String(sensorValue1) + "," + String(sensorValue3) + "," + String(sensorValue4) + "," + String(sensorValue5) + "," + String(sensorValue6) + "," + String(sensorValue7) + "</WRITE>";
   
     Serial.println(stateInfo);
     Serial.println(sensorResults);
@@ -92,14 +91,14 @@ void loop() {
   DirtySetup();
   Serial.println("Initialise Dirty Read"); 
 
-  ReadVals(1500, 1);
+  ReadVals(100, 1);
 
-  // CleanSetup();
-  // Serial.println("Initialise Clean Read");
-  // Serial.println("Complete");
+  CleanSetup();
+  Serial.println("Initialise Clean Read");
+  Serial.println("Complete");
 
-  // delay(30000);
-  // ReadVals(150, 0);
+  delay(30000);
+  ReadVals(100, 0);
 
   measurementnum++;
 }
