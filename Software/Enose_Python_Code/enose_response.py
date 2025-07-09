@@ -3,7 +3,6 @@ import serial
 import time
 import matplotlib.pyplot as plt
 import csv
-import os
 
 # Set up the serial connection
 ser = serial.Serial(
@@ -25,16 +24,7 @@ MQ135 = []
 # File name for the CSV
 timestr = time.strftime("%Y%m%d-%H%M%S")
 gas_name = input("What is the name of your gas?\n").capitalize()
-
-folder_name = "Results/" + gas_name + "-" + timestr
-if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-    print(f"Folder '{folder_name}' created.")
-else:
-    print(f"Folder '{folder_name}' already exists.")
-
-base_dir = folder_name + "/"
-csv_file = base_dir + gas_name + "-" + timestr + ".csv"
+csv_file = gas_name + " - " + timestr + ".csv"
 print("The file will be saved to: " + csv_file)
 
 # We are required to read every row into a csv file from which we will be able to plot a normalized graph with respect to the minimum during the purge cycle which we consider to be the reference air voltage.
@@ -104,6 +94,4 @@ ax.legend(loc='upper right')
 ax.grid(True)
 
 plt.tight_layout()
-response_name = gas_name + "-resp-" + timestr + ".pdf"
-plt.savefig(folder_name + "/" + response_name)  
 plt.show()

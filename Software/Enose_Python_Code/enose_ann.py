@@ -4,8 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
-
+from   sklearn.model_selection import train_test_split
 
 # Create a Model Class that inherits nn.Module
 class Model(nn.Module):

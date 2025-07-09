@@ -10,7 +10,12 @@ void ReadVals(int duration, boolean state) {
   quicksamplenum = 0;
   float starttime = millis();
   float endtime = starttime;
-  while ((endtime - starttime)/1000 <=(duration)) // do this loop for up to 15s
+
+  // When entering a state: write to the serial port that the state has changed
+  String stateChange = "<WRITE>" + state + "</WRITE>";
+  Serial.write(data.c_str())
+  
+  while ((endtime - starttime)/1000 <=(duration)) 
   {  
     int sensorValue = analogRead(A0);   // MQ135 
     int sensorValue1 = analogRead(A1);  // MQ3
