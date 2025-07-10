@@ -2,17 +2,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from   sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import pandas as pd
 from   sklearn.model_selection import train_test_split
+import os
+from   glob import glob
 
 # Create a Model Class that inherits nn.Module
 class Model(nn.Module):
     
-    # Input layer (4 fetures of the flower) --> Hidden layers --> output (3 classes of the iris flower)
-    
     # Contruction of the neural network
-    def __init__(self, in_features=8, h1=72, h2=72, h3=72, h4=72, h5=72, out_features=3):
+    def __init__(self, in_features=7, h1=72, h2=72, h3=72, h4=72, h5=72, out_features=4):
         super().__init__()                      # instance our nn.Module
         self.fc1 = nn.Linear(in_features, h1)      
         self.fc2 = nn.Linear(h1, h2)
@@ -36,15 +37,27 @@ torch.manual_seed(30)
 
 model = Model()
 
-# Replace 'your_file.csv' with the path to your CSV file
-df = pd.read_csv('enose.csv')
+data_dir = 'Training'
+all_files = glob(os.path.join(data_dir, '*.csv'))
 
-# Rename the names of the gases to values (Start labelling from 0).
-# NOTE: When adding new gases e.g. butane, upadate both the csv file and the code
-df['content'] = df['content'].replace('air', 0)
-df['content'] = df['content'].replace('acetone', 1)
-df['content'] = df['content'].replace('isopropyl', 2)
+df_list = []
 
+for file in all_files:
+    # Extract gas name from filename e.g., "acetone-01.csv" -> "acetone"
+    gas_name = os.path.basename(file).split('-')[0].lower()
+
+    temp_df = pd.read_csv(file)
+    temp_df['content'] = gas_name  # Add new column for label
+    df_list.append(temp_df)
+
+# Combine all into one DataFrame
+df = pd.concat(df_list, ignore_index=True)
+
+# Map unique gas names to numeric labels automatically
+gas_labels = {gas: idx for idx, gas in enumerate(df['content'].unique())}
+df['content'] = df['content'].map(gas_labels)
+
+print("Gas Label Mapping:", gas_labels)
 
 # Train Test Split
 X = df.drop("content", axis=1)
@@ -119,14 +132,29 @@ with torch.no_grad():
 
 print(f'Correct predictions: {correct}')
 
-
-
-# Classify data based on the received inputs
-new_gas = torch.tensor([146.0,420.0,29.0,213.0,262.0,250.0,41.0,130.0])
-# Insert the data into the neural network 
+# Make predictions for the whole test set
 with torch.no_grad():
-    print(model(new_gas))
+    outputs = model(X_test)
+    _, predicted = torch.max(outputs, 1)
 
+# Convert to numpy arrays for sklearn
+y_true = Y_test.numpy()
+y_pred = predicted.numpy()
+
+# Invert the gas_labels dictionary to get numeric -> label mapping
+inv_gas_labels = {v: k.capitalize() for k, v in gas_labels.items()}
+
+# Get label names in correct numeric order
+labels = [inv_gas_labels[i] for i in sorted(inv_gas_labels.keys())]
+
+# Generate and plot the confusion matrix
+cm = confusion_matrix(y_true, y_pred)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+
+plt.figure(figsize=(6, 6))
+disp.plot(values_format='d', cmap='cividis')
+plt.title("Confusion Matrix")
+plt.show()
 
 # Save the neural network model
 torch.save(model.state_dict(), 'enose_ann_model.pt')
