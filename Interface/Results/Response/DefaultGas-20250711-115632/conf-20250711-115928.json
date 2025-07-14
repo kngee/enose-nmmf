@@ -1,0 +1,9 @@
+{
+    "flood": "100",
+    "purge": "200",
+    "stageDelay": "30000",
+    "serial_port": "COM11",
+    "baud_rate": 9600,
+    "arduino_sketch_path": "ENOSE_AUTO.ino",
+    "animation_interval_ms": 200
+}

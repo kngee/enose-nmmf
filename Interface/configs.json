@@ -1,0 +1,11 @@
+{
+    "serial_port": "COM11",
+    "baud_rate": 9600,
+    "animation_interval_ms": 200,
+    "arduino_sketch_path": "./ENOSE_AUTO",
+    "sensor_model": "MQ-Series v2.1",
+    "calibration_date": "2024-01-15",
+    "firmware_version": "1.2.0",
+    "adc_resolution": "10-bit",
+    "gain_setting": "Low"
+}

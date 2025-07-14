@@ -12,7 +12,7 @@ void ReadVals(int duration, boolean state) {
   float endtime = starttime;
 
   // When entering a state: write to the serial port that 
-  while ((endtime - starttime)/1000 <=(duration)) 
+  while ((endtime - starttime)/1000 <=(duration))   
   {  
     int sensorValue = analogRead(A0);   // MQ135 
     int sensorValue1 = analogRead(A1);  // MQ3

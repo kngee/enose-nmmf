@@ -88,7 +88,7 @@ sensors = [
 
 # Create a single 1x1 plot
 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-
+    
 # Plot each sensor's data on the same axes
 for sensor_data, label in sensors:
     min_val = min(sensor_data)
