@@ -7,7 +7,7 @@ read : bool = True
 
 # Set up the serial connection
 ser = serial.Serial(
-    port='COM11',       # Replace with your Arduino's serial port
+    port='COM9',       # Replace with your Arduino's serial port
     baudrate=9600,      # Match the baud rate in your Arduino code
 )
 

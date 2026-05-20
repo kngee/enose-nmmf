@@ -2,12 +2,13 @@ import numpy as np
 import serial
 import time
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter, find_peaks
 import csv
 import os
 
 # Set up the serial connection
 ser = serial.Serial(
-    port='COM11',       # Replace with your Arduino's serial port
+    port='COM9',       # Replace with your Arduino's serial port
     baudrate=9600,     # Match the baud rate in your Arduino code
 )
 
@@ -107,3 +108,66 @@ plt.tight_layout()
 response_name = gas_name + "-resp-" + timestr + ".pdf"
 plt.savefig(folder_name + "/" + response_name)  
 plt.show()
+
+# This smoothes the graph using Savitzky-Golay filter and plots the smoothed data on a new graph. 
+# It also extracts the peaks and their properties for further analysis.
+# The smoothed graph is saved as a PDF in the same folder as the raw response graph.
+smooth_window = 10  # Adjust the window size as needed
+smooth_poly = 4 # Adjust the polynomial order as needed
+
+fig2, ax2 = plt.subplots(1, 1, figsize=(10, 6))
+# The smooth_norm dictionary stores the smoothed data for each sensor
+smooth_norm = {}
+
+for sensor_data, label in sensors:
+    min_val = min(sensor_data)
+    max_val = max(sensor_data)
+    norm = np.array([(x - min_val) / (max_val - min_val) if max_val != min_val else 1.0 for x in sensor_data])
+    if len(norm) >= smooth_window:
+        smoothed = savgol_filter(norm, window_length=smooth_window, polyorder=smooth_poly)
+    else:
+        smoothed = norm  # If not enough data points, skip smoothing
+    smooth_norm[label] = smoothed
+    ax2.plot(smoothed, label=label)
+
+ax2.set_title(gas_name + " smoothed combined MQ sensor response")
+ax2.set_xlabel("Time (seconds)")
+ax2.set_ylabel("Sensor Output Normalized to Air (V/V)")
+ax2.legend(loc='upper right')
+ax2.grid(True)
+
+plt.tight_layout()
+smooth_response_name = gas_name + "-smooth-resp-" + timestr + ".pdf"
+plt.savefig(folder_name + "/" + smooth_response_name)
+plt.show()
+
+
+# Data extraction for peak detection
+extraction_lines = []
+extraction_lines.append(f"=== Data Extraction Report: {gas_name} ({timestr}) ===\n")
+
+for label, smoothed_data in smooth_norm.items():
+    # Find peaks in the smoothed data
+    peaks, peak_properties = find_peaks(smoothed_data, prominence=0.05)  # Adjust height threshold as needed
+    extraction_lines.append(f"  Peaks found: {len(peaks)}")
+    for i,p in enumerate(peaks):
+        extraction_lines.append(f"    Peak {i+1}: Index={p}, Value={smoothed_data[p]:.4f}, Prominence={peak_properties['prominences'][i]:.4f}")
+
+    # get slope of the curve(frist derivative)
+    slope = np.diff(smoothed_data)
+    max_rise_index = int(np.argmax(slope))
+    extraction_lines.append(f"  Maximum rise at index: {max_rise_index}, Value: {slope[max_rise_index]:.4f}\n")
+    max_fall_index = int(np.argmin(slope))
+    extraction_lines.append(f"  Maximum fall at index: {max_fall_index}, Value: {slope[max_fall_index]:.4f}\n")
+    mean_val = np.mean(slope)
+    extraction_lines.append(f"  Mean slope: {mean_val:.4f}\n")
+    rms_val = np.sqrt(np.mean(slope**2))
+    extraction_lines.append(f"  RMS slope: {rms_val:.4f}\n")
+# terminal 
+report_text = "\n".join(extraction_lines)
+print(report_text)
+# Save the extraction report to a text file
+report_file = base_dir + gas_name + "-extraction-report-" + timestr + ".txt"
+with open(report_file, "w") as f:
+    f.writelines(extraction_lines)  
+

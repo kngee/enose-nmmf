@@ -84,4 +84,17 @@ def grouped_bar_histogram(training_folder):
 
 # Run the plot function
 if __name__ == "__main__":
-    grouped_bar_histogram("Training")
+    from tkinter import filedialog, Tk
+    
+    # Hide the annoying blank background window
+    root = Tk()
+    root.withdraw() 
+    
+    print("Please select your 'Training' folder...")
+    # Open a folder picker instead of a file picker
+    selected_folder = filedialog.askdirectory(title="Select the 'Training' Folder")
+    
+    if selected_folder:
+        grouped_bar_histogram(selected_folder)
+    else:
+        print("No folder selected.")

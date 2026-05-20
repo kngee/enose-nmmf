@@ -18,6 +18,8 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import tkinter as tk
+from tkinter import filedialog
 import csv
 import sys
 import os
@@ -70,7 +72,19 @@ def box_plot(csv_path):
 
 # Command-line interface
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python box_plot.py <path_to_csv>")
+    # Hide the main root window
+    root = tk.Tk()
+    root.withdraw() 
+    
+    # Open the file dialog window
+    print("Please select your E-Nose CSV file...")
+    selected_file = filedialog.askopenfilename(
+        title="Select E-Nose CSV Data",
+        filetypes=[("CSV Files", "*.csv")]
+    )
+    
+    if selected_file:
+        box_plot(selected_file)
     else:
-        box_plot(sys.argv[1])
+        print("No file selected.")
+

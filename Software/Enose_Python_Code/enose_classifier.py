@@ -3,10 +3,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import serial
+import os
+
+dir = os.path.dirname(__file__)
+model_path = os.path.join(dir, 'enose_ann_model.pt')
 
 # Set up the serial connection
 ser = serial.Serial(
-    port='COM11',       # Replace with your Arduino's serial port
+    port='COM9',       # Replace with your Arduino's serial port
     baudrate=9600,     # Match the baud rate in your Arduino code
 )
 
@@ -39,7 +43,7 @@ read : bool = True
 
 # Load the saved model
 new_model = Model()
-new_model.load_state_dict(torch.load('enose_ann_model.pt', weights_only=True))
+new_model.load_state_dict(torch.load(model_path, weights_only=True))
 
 try:
 
@@ -78,6 +82,8 @@ try:
                         gas_class = 'acetone'
                     elif gas_eval.index(max(gas_eval)) == 2:
                         gas_class = 'isopropyl'
+                    elif gas_eval.index(max(gas_eval)) == 3:
+                        gas_class = 'methanol'
                     
                     print("Content detected: ", gas_class)
 
