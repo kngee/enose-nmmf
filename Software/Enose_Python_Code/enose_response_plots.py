@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter, find_peaks
 import csv
 import os
+import json
 
 # Set up the serial connection
 ser = serial.Serial(
@@ -143,31 +144,63 @@ plt.show()
 
 
 # Data extraction for peak detection
-extraction_lines = []
-extraction_lines.append(f"=== Data Extraction Report: {gas_name} ({timestr}) ===\n")
+extraction_data = {"gas": gas_name, "timestamp": timestr, "sensors": {}}
+
+txt_lines = [
+    f"=== Data Extraction Report: {gas_name} ({timestr}) ===",
+    "",
+]
 
 for label, smoothed_data in smooth_norm.items():
-    # Find peaks in the smoothed data
-    peaks, peak_properties = find_peaks(smoothed_data, prominence=0.05)  # Adjust height threshold as needed
-    extraction_lines.append(f"  Peaks found: {len(peaks)}")
-    for i,p in enumerate(peaks):
-        extraction_lines.append(f"    Peak {i+1}: Index={p}, Value={smoothed_data[p]:.4f}, Prominence={peak_properties['prominences'][i]:.4f}")
-
-    # get slope of the curve(frist derivative)
+    peaks, props = find_peaks(smoothed_data, prominence=0.05)
     slope = np.diff(smoothed_data)
-    max_rise_index = int(np.argmax(slope))
-    extraction_lines.append(f"  Maximum rise at index: {max_rise_index}, Value: {slope[max_rise_index]:.4f}\n")
-    max_fall_index = int(np.argmin(slope))
-    extraction_lines.append(f"  Maximum fall at index: {max_fall_index}, Value: {slope[max_fall_index]:.4f}\n")
-    mean_val = np.mean(slope)
-    extraction_lines.append(f"  Mean slope: {mean_val:.4f}\n")
-    rms_val = np.sqrt(np.mean(slope**2))
-    extraction_lines.append(f"  RMS slope: {rms_val:.4f}\n")
-# terminal 
-report_text = "\n".join(extraction_lines)
-print(report_text)
-# Save the extraction report to a text file
-report_file = base_dir + gas_name + "-extraction-report-" + timestr + ".txt"
-with open(report_file, "w") as f:
-    f.writelines(extraction_lines)  
 
+    sensor_report = {
+        "peaks": [
+            {"index": int(p), "value": round(float(smoothed_data[p]), 4),
+             "prominence": round(float(props["prominences"][i]), 4)}
+            for i, p in enumerate(peaks)
+        ],
+        "slope": {
+            "max_rise_index": int(np.argmax(slope)),
+            "max_rise_value": round(float(np.max(slope)), 4),
+            "max_fall_index": int(np.argmin(slope)),
+            "max_fall_value": round(float(np.min(slope)), 4),
+            "mean": round(float(np.mean(slope)), 4),
+            "rms": round(float(np.sqrt(np.mean(slope**2))), 4),
+        }
+    }
+    extraction_data["sensors"][label] = sensor_report
+
+    # Human-readable TXT block
+    txt_lines += [
+        f"[ {label} ]",
+        f"  Peaks found : {len(peaks)}",
+    ]
+    for i, p in enumerate(peaks):
+        txt_lines.append(
+            f"    Peak {i+1}: index={p}, value={smoothed_data[p]:.4f}, "
+            f"prominence={props['prominences'][i]:.4f}"
+        )
+    s = sensor_report["slope"]
+    txt_lines += [
+        f"  Max rise    : index={s['max_rise_index']}, slope={s['max_rise_value']}",
+        f"  Max fall    : index={s['max_fall_index']}, slope={s['max_fall_value']}",
+        f"  Mean slope  : {s['mean']}",
+        f"  RMS slope   : {s['rms']}",
+        "",
+    ]
+
+# Save structured JSON (machine-readable)
+json_file = base_dir + f"{gas_name}-extraction-{timestr}.json"
+with open(json_file, "w") as f:
+    json.dump(extraction_data, f, indent=2)
+
+# Save clean TXT (human-readable, one line per entry)
+txt_file = base_dir + f"{gas_name}-extraction-{timestr}.txt"
+with open(txt_file, "w") as f:
+    f.write("\n".join(txt_lines))
+
+print("\n".join(txt_lines))
+print(f"\nJSON report saved → {json_file}")
+print(f"TXT report saved  → {txt_file}")
